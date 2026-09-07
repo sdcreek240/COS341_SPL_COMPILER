@@ -1,0 +1,2 @@
+## Test programs
+Contains .txt files with sample SPL programs used for end-to-end testing. Includes both valid programs (expected to parse successfully) and invalid programs (expected to produce meaningful error messages).
