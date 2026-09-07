@@ -6,3 +6,22 @@ A compiler for the SPL programming language, built as part of COS341. Implements
 - Feature branches: `feat/lexer`, `feat/parser`, `feat/tokenstream`, etc.
 - **Pull requests required** for all merges into `main`
 - At least **1 approving review** needed before merging
+
+## Build
+
+```bash
+mvn clean compile
+mvn exec:java -Dexec.mainClass="spl.Main"
+```
+
+## Project Structure
+```
+src/main/java/spl/
+├── lexer/      # Tokenization
+├── parser/     # Recursive descent parsing
+├── tree/       # Node tree + NodeFactory
+├── io/         # XMLWriter
+└── Main.java   # Entry point
+```
+
+
