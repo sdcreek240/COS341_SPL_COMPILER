@@ -1,0 +1,1 @@
+#i : : #i = 0 ; while lesser ( #i 3 ) do { if eq ( #i 0 ) then { print "zero" } else { print ( #i ) } ; #i = add ( #i 1 ) ; } ; $
