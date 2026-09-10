@@ -1,6 +1,8 @@
 package spl;
 
 import spl.frontend.Frontend;
+import spl.frontend.exceptionHandling.CompilationResult;
+import spl.frontend.exceptionHandling.DebugPrinter;
 
 import java.nio.file.Path;
 
@@ -11,6 +13,18 @@ public class Main {
 
         Frontend frontend = new Frontend();
 
-        frontend.processFile(filePath);
+        CompilationResult result = frontend.processFile(filePath);
+
+        
+        if (result.isSuccess()) {
+
+            System.out.println("Parsed OK: " + filePath.getFileName());
+
+            DebugPrinter.printTree(result.getTree(), result.getParser());
+
+        } else {
+
+            System.out.println(result.getDiagnostic().render());
+        }
     }
 }

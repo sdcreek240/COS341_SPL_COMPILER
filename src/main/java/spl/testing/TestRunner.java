@@ -11,8 +11,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-
 public class TestRunner {
 
     private static final Path PROGRAMS_DIR = Path.of("programs");
