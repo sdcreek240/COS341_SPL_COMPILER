@@ -15,12 +15,13 @@
     <description>A compiler for the SPL programming language</description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
+
         <!-- JUnit for testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -28,10 +29,19 @@
             <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- cli selector-->
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline</artifactId>
             <version>3.30.15</version>
+        </dependency>
+
+        <!-- ANTLR runtime -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.13.2</version>
         </dependency>
     </dependencies>
 
@@ -50,6 +60,30 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.2</version>
             </plugin>
+            
+            <!-- ANTLR Maven Plugin -->
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>4.13.2</version>
+
+                <configuration>
+                    <outputDirectory>
+                        ${project.basedir}/src/main/java/spl/antlr
+                    </outputDirectory>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>generate-antlr-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
