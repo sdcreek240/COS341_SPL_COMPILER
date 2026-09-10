@@ -1,6 +1,8 @@
 package spl.testing;
 
 import spl.frontend.Frontend;
+import spl.frontend.exceptionHandling.CompilationResult;
+import spl.frontend.exceptionHandling.DebugPrinter;
 import spl.testing.ui.FileSelector;
 
 import java.io.IOException;
@@ -19,7 +21,7 @@ public class TestRunner {
 
         //Get debug
         boolean debug = args.length>0 && args[0].equalsIgnoreCase("debug");
-        Frontend frontend = new Frontend(debug);
+        Frontend frontend = new Frontend();
 
         try {
 
@@ -48,8 +50,25 @@ public class TestRunner {
                 filePath = chosenSubPath.resolve(chosenFile);
             }
 
-           // Call frontend to run on input file
-           ParseTree tree = frontend.processFile(filePath);
+            // Call frontend to run on input file
+            CompilationResult result = frontend.processFile(filePath);
+
+            if (debug && result.getTokens() != null) {
+                DebugPrinter.printTokens(result.getTokens());
+            }
+
+            if (result.isSuccess()) {
+
+                System.out.println("Parsed OK: " + filePath.getFileName());
+
+                if (debug) {
+                    DebugPrinter.printTree(result.getTree(), result.getParser());
+                }
+
+            } else {
+
+                System.out.println(result.getDiagnostic().render());
+            }
 
         } catch (IOException e) {
             System.out.println("Input file error: "+ e.getMessage());

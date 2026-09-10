@@ -9,7 +9,7 @@ public class Main {
 
         Path filePath = Path.of("programs/SPL.txt");
 
-        Frontend frontend = new Frontend(false);
+        Frontend frontend = new Frontend();
 
         frontend.processFile(filePath);
     }
