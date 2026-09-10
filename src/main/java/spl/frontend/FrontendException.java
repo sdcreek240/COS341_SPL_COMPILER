@@ -1,7 +1,7 @@
 package spl.frontend;
 
 //For exceptions thrown only by frontend - lex or parse
-public class FrontendException extends Exception {
+public class FrontendException extends RuntimeException {
 
     private final String stage;
 
@@ -11,7 +11,7 @@ public class FrontendException extends Exception {
     public FrontendException(String stage, String message, int line, int column) {
 
         super(message);
-        
+
         this.stage = stage;
         this.line = line;
         this.column = column;

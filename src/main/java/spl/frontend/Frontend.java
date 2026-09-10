@@ -24,17 +24,27 @@ public class Frontend {
      * Full pipeline
      * @param filePath - path to the input file
      * @return ParseTree representing the program
-     * @throws IOException
      */
     public ParseTree processFile(Path filePath) {
 
-        // lex
-        CommonTokenStream tokens = lexFile(filePath);
+        try {
 
-        //parse
-        ParseTree tree =  parseTokens(tokens);
+            // lex
+            CommonTokenStream tokens = lexFile(filePath);
 
-        return tree;
+            //lexing failed
+            if (tokens==null)
+                return null;
+
+            //parse
+            ParseTree tree =  parseTokens(tokens);
+
+            return tree;
+        } catch (FrontendException e) {
+            handleError(e);
+            return null;
+        }
+
     }//END_processFile
 
     //🎅's little helpers
@@ -43,15 +53,29 @@ public class Frontend {
      * Lex the input file and return a CommonTokenStream
      * @param filePath - path to the input file
      * @return CommonTokenStream containing all tokens
-     * @throws IOException - do we want to define our own exceptions?
+     * @throws FrontendException
      */
-    private CommonTokenStream lexFile(Path filePath) {
+    private CommonTokenStream lexFile(Path filePath) throws FrontendException {
 
         try {
+
             String source = Files.readString(filePath);
             CharStream input = CharStreams.fromString(source);
 
             SPLLexer lexer = new SPLLexer(input);
+            
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(new BaseErrorListener() {
+                @Override
+                public void syntaxError(Recognizer<?, ?> recognizer,
+                                        Object offendingSymbol,
+                                        int line, int charPositionInLine,
+                                        String msg,
+                                        RecognitionException e) {
+                    throw new FrontendException("Lexing", msg, line, charPositionInLine + 1);
+                }
+            });
+
             CommonTokenStream tokens =  new CommonTokenStream(lexer);
 
             //Debug
@@ -73,12 +97,7 @@ public class Frontend {
             return tokens;
         } catch (IOException e) {
 
-            handleError(new FrontendException("Lexing", "I/O error while reading file", -1, -1));
-            return null;
-        } catch (RuntimeException e) {
-
-            handleError(new FrontendException("Lexing", "Unexpected lexical error", -1, -1));
-            return null;
+            throw new FrontendException("Lexing", "I/O error while reading file", -1, -1);
         }
     }//END_lexFile
 
@@ -86,8 +105,9 @@ public class Frontend {
      * Parse the token stream and return the parse tree
      * @param tokens - token stream produced by the lexer
      * @return the ParseTree
+     * @throws FrontendException
      */
-    private ParseTree parseTokens(CommonTokenStream tokens) {
+    private ParseTree parseTokens(CommonTokenStream tokens) throws FrontendException{
 
         SPLParser parser = new SPLParser(tokens);
 
@@ -115,14 +135,17 @@ public class Frontend {
             int line = offending.getLine();
             int col = offending.getCharPositionInLine()+1;
 
-            handleError(new FrontendException(
+            throw new FrontendException(
                 "Parsing",
                 "Grammar error near token '" + offending.getText() + "'", line, col
-            ));
-            return null;
+            );
         }
     }//END_parseTokens
 
+    /**
+     * Handles FrontendExceptions
+     * @param e
+     */
     private void handleError(FrontendException e) {
         System.out.printf(
             "%s error at line %d, column %d: %s%n",
