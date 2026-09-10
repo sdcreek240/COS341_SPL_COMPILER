@@ -1,7 +1,6 @@
 package spl.testing;
 
 import spl.frontend.Frontend;
-import spl.frontend.FrontendException;
 import spl.testing.ui.FileSelector;
 
 import java.io.IOException;
