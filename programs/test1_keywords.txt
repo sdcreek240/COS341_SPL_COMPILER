@@ -1,1 +1,0 @@
-num void return print nop comment if then else do while until mod add sub mul div neg not and or eq larger lesser

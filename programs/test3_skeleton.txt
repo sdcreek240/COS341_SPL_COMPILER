@@ -1,6 +1,0 @@
-: :
-if
-then { nop }
-else { print }
-while do { nop } ;
-$

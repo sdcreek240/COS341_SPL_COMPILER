@@ -87,4 +87,22 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>test-runner</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.6.3</version>
+                        <configuration>
+                            <mainClass>spl.testing.TestRunner</mainClass>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

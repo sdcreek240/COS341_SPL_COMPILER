@@ -1,4 +1,4 @@
-package spl.frontend.ui;
+package spl.testing.ui;
 
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
