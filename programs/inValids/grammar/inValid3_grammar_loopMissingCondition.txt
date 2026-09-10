@@ -2,4 +2,3 @@
 : 
 do { print "looping" } 
 eq ( #i 3 ) ; 
-$

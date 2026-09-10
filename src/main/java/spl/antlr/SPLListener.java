@@ -90,6 +90,36 @@ public interface SPLListener extends ParseTreeListener {
 	 */
 	void exitOutp(SPLParser.OutpContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SPLParser#call}.
+	 * @param ctx the parse tree
+	 */
+	void enterCall(SPLParser.CallContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SPLParser#call}.
+	 * @param ctx the parse tree
+	 */
+	void exitCall(SPLParser.CallContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SPLParser#input}.
+	 * @param ctx the parse tree
+	 */
+	void enterInput(SPLParser.InputContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SPLParser#input}.
+	 * @param ctx the parse tree
+	 */
+	void exitInput(SPLParser.InputContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SPLParser#assign}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssign(SPLParser.AssignContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SPLParser#assign}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssign(SPLParser.AssignContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SPLParser#term}.
 	 * @param ctx the parse tree
 	 */
@@ -110,6 +140,16 @@ public interface SPLListener extends ParseTreeListener {
 	 */
 	void exitBranch(SPLParser.BranchContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SPLParser#bool}.
+	 * @param ctx the parse tree
+	 */
+	void enterBool(SPLParser.BoolContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SPLParser#bool}.
+	 * @param ctx the parse tree
+	 */
+	void exitBool(SPLParser.BoolContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SPLParser#loop}.
 	 * @param ctx the parse tree
 	 */
@@ -120,13 +160,13 @@ public interface SPLListener extends ParseTreeListener {
 	 */
 	void exitLoop(SPLParser.LoopContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SPLParser#bool}.
+	 * Enter a parse tree produced by {@link SPLParser#cond}.
 	 * @param ctx the parse tree
 	 */
-	void enterBool(SPLParser.BoolContext ctx);
+	void enterCond(SPLParser.CondContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SPLParser#bool}.
+	 * Exit a parse tree produced by {@link SPLParser#cond}.
 	 * @param ctx the parse tree
 	 */
-	void exitBool(SPLParser.BoolContext ctx);
+	void exitCond(SPLParser.CondContext ctx);
 }

@@ -25,6 +25,12 @@ mvn exec:java
 mvn exec:java -Ptest-runner
 ```
 
+## Test Runner with debug
+
+```bash
+mvn exec:java -Ptest-runner -Dexec.args="debug"
+```
+
 ## Project Structure
 ```
 src/main/java/spl/

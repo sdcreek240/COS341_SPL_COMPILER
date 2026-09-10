@@ -1,1 +1,71 @@
-#result : num #inc ( #n ) { : : return ( add ( #n 1 ) ) } : #result = #inc ( 5 ) ; print ( #result ) ; $
+#x #y #z #i #flag #fact5 #pi #half #neg1
+:
+void #printmsg ( #m )
+{
+    :
+    :
+    print ( #m ) ;
+    return
+}
+num #square ( #n )
+{
+    :
+    :
+    return ( mul ( #n #n ) )
+}
+num #factorial ( #n )
+{
+    #result
+    :
+    :
+    if larger ( #n 1 ) then {
+        #result = mul ( #n #factorial ( sub ( #n 1 ) ) ) ;
+    } else {
+        #result = 1 ;
+    } ;
+    return ( #result )
+}
+:
+comment "spl-demo-program-full-grammar-coverage" ;
+#x = 5 ;
+#y = neg ( 3 ) ;
+#z = add ( #x mul ( #y 2 ) ) ;
+#z = sub ( #z 1 ) ;
+#z = div ( #z 2 ) ;
+#z = mod ( #z 3 ) ;
+#pi = 3.14 ;
+#half = 0.5 ;
+#neg1 = -2.5 ;
+print ( #pi ) ;
+print ( #half ) ;
+print ( #neg1 ) ;
+#i = 0 ;
+#flag = 0 ;
+while lesser ( #i 5 ) do {
+    if eq ( #flag 0 ) then {
+        print "counting-up" ;
+        #flag = 1 ;
+    } else {
+        nop ;
+    } ;
+    print ( #i ) ;
+    #i = add ( #i 1 ) ;
+} ;
+if or ( eq ( #flag 0 ) eq ( #flag 1 ) ) then {
+    print "flag-is-either-0-or-1" ;
+} else {
+    nop ;
+} ;
+#i = 0 ;
+do {
+    print ( #square ( #i ) ) ;
+    #i = add ( #i 1 ) ;
+} until eq ( #i 5 ) ;
+#fact5 = #factorial ( 5 ) ;
+if and ( larger ( #fact5 0 ) not ( eq ( #i 0 ) ) ) then {
+    comment "fact5-is-positive-and-i-is-nonzero" ;
+} else {
+    nop ;
+} ;
+print ( #fact5 ) ;
+#printmsg ( #z ) ;

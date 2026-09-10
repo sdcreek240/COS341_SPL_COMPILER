@@ -5,6 +5,7 @@ grammar SPL;
 }
 
 // Lexer rules (Tokens)
+
 VOID        : 'void';
 NUM         : 'num';
 RETURN      : 'return';
@@ -35,9 +36,20 @@ LARGER      : 'larger';
 LESSER      : 'lesser';
 
 // Identifiers and literals
-USER_ID     : '#' [0-9a-z]+;   // matches spec for user-defined names
-NUM_LIT     : [0-9]+;          // numeric literal (simplified form)
-STRING      : '"' [a-z0-9 ,.:!?-]* '"';
+// USER-DEFINED-NAME -> #(0|1|...|9|a|...|z)*_
+USER_ID     : '#' [0-9a-z]* ;
+
+// NUM -> 0_ | (-|eps)0.(digit)*(nonzero)_ | (-|eps)(nonzero)(digit)*.(digit)*(nonzero)_ | (-|eps)(nonzero)(digit)*_
+NUM_LIT     : '0'
+            | '-'? '0' '.' DIGIT* NONZERO
+            | '-'? NONZERO DIGIT* '.' DIGIT* NONZERO
+            | '-'? NONZERO DIGIT* ;
+
+fragment DIGIT    : [0-9];
+fragment NONZERO  : [1-9];
+
+// STRING -> "(,|.|:|-|?|!|0..9|a..z)*"_
+STRING      : '"' (',' | '.' | ':' | '-' | '?' | '!' | [0-9a-z])* '"' ;
 
 // Symbols
 LEFT_PAREN  : '(';
@@ -46,15 +58,16 @@ LEFT_BRACE  : '{';
 RIGHT_BRACE : '}';
 COLON       : ':';
 SEMICOLON   : ';';
-ASSIGN      : '=';
-DOLLAR      : '$';
+ASSIGN_OP   : '=';
 
 // Whitespace
 WS          : [ \t\r\n]+ -> skip;
 
-// END_Tokens -----------------------------------------------------------
+//-----------------------------------------------------------------------------------------------
 
-// --- Parser rules ---
+// Parser rules
+
+// SPL_PROG -> P $ - for now we saying its psuedo and wont appear in a valid program
 spl_prog    : p EOF ;
 
 p           : v_decl ':' f_decl ':' algo ;
@@ -66,39 +79,50 @@ f_decl      : f_type f_decl
             | /* epsilon */ ;
 
 f_type      : VOID USER_ID '(' v_decl ')' '{' p RETURN '}'
-            | NUM USER_ID '(' v_decl ')' '{' p RETURN '}' ;
+            | NUM  USER_ID '(' v_decl ')' '{' p RETURN '(' term ')' '}' ;
 
-algo        : instr*
-            | /* epsilon */ ;
+algo        : (instr ';')* ;
 
-instr       : PRINT outp ';'
-            | NOP ';'
-            | COMMENT ';'
-            | USER_ID ';'
+instr       : PRINT outp
+            | NOP
+            | COMMENT STRING
+            | assign
+            | call
             | branch
             | loop ;
 
-outp        : term
+outp        : '(' term ')'
             | STRING ;
+
+call        : USER_ID '(' input ')' ;
+
+input       : term* ;
+
+assign      : USER_ID '=' term ;
 
 term        : USER_ID
             | NUM_LIT
-            | 'mod' term
-            | 'add' term
-            | 'sub' term
-            | 'mul' term
-            | 'div' term
-            | 'neg' term ;
+            | call
+            | MOD '(' term term ')'
+            | ADD '(' term term ')'
+            | SUB '(' term term ')'
+            | MUL '(' term term ')'
+            | DIV '(' term term ')'
+            | NEG '(' term ')' ;
 
-branch      : IF bool 'then' algo ('else' algo)? ;
+branch      : IF bool THEN '{' algo '}' ELSE '{' algo '}' ;
 
-loop        : WHILE bool 'do' algo
-            | UNTIL bool 'do' algo
-            | DO algo WHILE bool ;
+bool        : NOT    '(' bool ')'
+            | AND    '(' bool bool ')'
+            | OR     '(' bool bool ')'
+            | EQ     '(' term term ')'
+            | LARGER '(' term term ')'
+            | LESSER '(' term term ')' ;
 
-bool        : 'not' bool
-            | 'and' bool
-            | 'or' bool
-            | 'eq' term term
-            | 'larger' term term
-            | 'lesser' term term ;
+loop        : cond bool DO '{' algo '}'
+            | DO '{' algo '}' cond bool ;
+
+cond        : WHILE
+            | UNTIL ;
+
+//END_PArserRules

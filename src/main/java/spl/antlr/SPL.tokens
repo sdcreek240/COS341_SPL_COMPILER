@@ -31,9 +31,8 @@ LEFT_BRACE=30
 RIGHT_BRACE=31
 COLON=32
 SEMICOLON=33
-ASSIGN=34
-DOLLAR=35
-WS=36
+ASSIGN_OP=34
+WS=35
 'void'=1
 'num'=2
 'return'=3
@@ -65,4 +64,3 @@ WS=36
 ':'=32
 ';'=33
 '='=34
-'$'=35

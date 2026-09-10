@@ -1,1 +1,1 @@
-#result : num #inc ( #n ) { : : return ( add ( #n 1 ) ) } : #result = #inc ( 5 ) ; print ( #result ) ; $
+#result : num #inc ( #n ) { : : return ( add ( #n 1 ) ) } : #result = #inc ( 5 ) ; print ( #result ) ;

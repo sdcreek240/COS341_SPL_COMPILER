@@ -3,4 +3,3 @@
 if eq ( #x 0 ) 
 then print "zero" 
 else print "nonzero" ; 
-$

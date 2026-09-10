@@ -1,6 +1,7 @@
 package spl.testing;
 
 import spl.frontend.Frontend;
+import spl.frontend.FrontendException;
 import spl.testing.ui.FileSelector;
 
 import java.io.IOException;
@@ -9,12 +10,20 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.antlr.v4.runtime.tree.ParseTree;
+
 public class TestRunner {
 
     private static final Path PROGRAMS_DIR = Path.of("programs");
 
     public static void main(String[] args) {
+
+        //Get debug
+        boolean debug = args.length>0 && args[0].equalsIgnoreCase("debug");
+        Frontend frontend = new Frontend(debug);
+
         try {
+
             // choose valids or inValids
             List<String> topDirs = listSubDirs(PROGRAMS_DIR);
             String chosenTop = FileSelector.select("Choose test category:", topDirs);
@@ -40,13 +49,11 @@ public class TestRunner {
                 filePath = chosenSubPath.resolve(chosenFile);
             }
 
-            System.out.println("Lexing: " + filePath.getFileName());
-            System.out.println("----------------------------------------");
-            Frontend.lexFile(filePath);
+           // Call frontend to run on input file
+           ParseTree tree = frontend.processFile(filePath);
 
         } catch (IOException e) {
-
-            System.out.println("I/O error: " + e.getMessage());
+            System.out.println("Input file error: "+ e.getMessage());
         }
     }//END_main
 
