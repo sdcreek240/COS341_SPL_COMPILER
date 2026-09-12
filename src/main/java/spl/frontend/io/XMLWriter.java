@@ -1,4 +1,4 @@
-package spl.io;
+package spl.frontend.io;
 
 public class XMLWriter {
     

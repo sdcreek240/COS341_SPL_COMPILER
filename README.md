@@ -11,7 +11,24 @@ A compiler for the SPL programming language, built as part of COS341. Implements
 
 ```bash
 mvn clean compile
-mvn exec:java -Dexec.mainClass="spl.Main"
+```
+
+## Execute
+
+```bash
+mvn exec:java
+```
+
+## Test Runner
+
+```bash
+mvn exec:java -Ptest-runner
+```
+
+## Test Runner with debug
+
+```bash
+mvn exec:java -Ptest-runner -Dexec.args="debug"
 ```
 
 ## Project Structure

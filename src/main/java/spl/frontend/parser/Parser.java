@@ -1,4 +1,4 @@
-package spl.parser;
+package spl.frontend.parser;
 
 public class Parser {
     
