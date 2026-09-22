@@ -3,6 +3,7 @@ package spl;
 import spl.frontend.Frontend;
 import spl.frontend.exceptionHandling.CompilationResult;
 import spl.frontend.exceptionHandling.DebugPrinter;
+import spl.frontend.io.XMLWriter;
 
 import java.nio.file.Path;
 
@@ -21,6 +22,9 @@ public class Main {
             System.out.println("Parsed OK: " + filePath.getFileName());
 
             DebugPrinter.printTree(result.getTree(), result.getParser());
+            System.out.println("Outputting the XML now");
+            XMLWriter.write(result.getTree(), result.getParser(), Path.of("tree.xml"));
+            System.out.println("Check tree.xml");
 
         } else {
 
