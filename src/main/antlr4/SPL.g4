@@ -81,7 +81,8 @@ f_decl      : f_type f_decl
 f_type      : VOID USER_ID '(' v_decl ')' '{' p RETURN '}'
             | NUM  USER_ID '(' v_decl ')' '{' p RETURN '(' term ')' '}' ;
 
-algo        : (instr ';')* ;
+algo        : instr ';' algo
+            | /* epsilon */ ;
 
 instr       : PRINT outp
             | NOP
@@ -124,5 +125,4 @@ loop        : cond bool DO '{' algo '}'
 
 cond        : WHILE
             | UNTIL ;
-
 //END_PArserRules
