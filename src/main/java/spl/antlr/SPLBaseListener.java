@@ -103,6 +103,18 @@ public class SPLBaseListener implements SPLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterInstrTail(SPLParser.InstrTailContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInstrTail(SPLParser.InstrTailContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterOutp(SPLParser.OutpContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -158,6 +170,18 @@ public class SPLBaseListener implements SPLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitTerm(SPLParser.TermContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTermTail(SPLParser.TermTailContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTermTail(SPLParser.TermTailContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

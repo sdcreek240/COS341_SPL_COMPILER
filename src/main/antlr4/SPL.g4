@@ -84,32 +84,38 @@ f_type      : VOID USER_ID '(' v_decl ')' '{' p RETURN '}'
 algo        : instr ';' algo
             | /* epsilon */ ;
 
-instr       : PRINT outp
+instr       : USER_ID instrTail
+            | PRINT outp
             | NOP
             | COMMENT STRING
-            | assign
-            | call
             | branch
             | loop ;
+
+instrTail   : '=' term
+            | '(' input ')'
+            ;
 
 outp        : '(' term ')'
             | STRING ;
 
 call        : USER_ID '(' input ')' ;
 
-input       : term* ;
+input       : term input
+            | /* epsilon */ ;
 
 assign      : USER_ID '=' term ;
 
-term        : USER_ID
+term        : USER_ID termTail
             | NUM_LIT
-            | call
             | MOD '(' term term ')'
             | ADD '(' term term ')'
             | SUB '(' term term ')'
             | MUL '(' term term ')'
             | DIV '(' term term ')'
             | NEG '(' term ')' ;
+
+termTail    : '(' input ')'
+            | /* epsilon */ ;
 
 branch      : IF bool THEN '{' algo '}' ELSE '{' algo '}' ;
 
