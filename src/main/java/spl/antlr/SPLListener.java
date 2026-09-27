@@ -80,6 +80,16 @@ public interface SPLListener extends ParseTreeListener {
 	 */
 	void exitInstr(SPLParser.InstrContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SPLParser#instrTail}.
+	 * @param ctx the parse tree
+	 */
+	void enterInstrTail(SPLParser.InstrTailContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SPLParser#instrTail}.
+	 * @param ctx the parse tree
+	 */
+	void exitInstrTail(SPLParser.InstrTailContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SPLParser#outp}.
 	 * @param ctx the parse tree
 	 */
@@ -129,6 +139,16 @@ public interface SPLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitTerm(SPLParser.TermContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SPLParser#termTail}.
+	 * @param ctx the parse tree
+	 */
+	void enterTermTail(SPLParser.TermTailContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SPLParser#termTail}.
+	 * @param ctx the parse tree
+	 */
+	void exitTermTail(SPLParser.TermTailContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SPLParser#branch}.
 	 * @param ctx the parse tree
