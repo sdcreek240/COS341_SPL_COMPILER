@@ -1,4 +1,4 @@
 : 
 : 
-do { print "looping" } 
+do { print "looping" ; } 
 eq ( #i 3 ) ; 
