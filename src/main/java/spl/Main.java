@@ -1,16 +1,23 @@
 package spl;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import spl.frontend.Frontend;
 import spl.frontend.exceptionHandling.CompilationResult;
 import spl.frontend.exceptionHandling.DebugPrinter;
 import spl.frontend.io.XMLWriter;
 
-import java.nio.file.Path;
-
 public class Main {
     public static void main(String[] args) {
 
-        Path filePath = Path.of("programs/SPL.txt");
+        Path filePath = Path.of(args.length > 0 ? args[0] : "programs/SPL.txt");
+
+        if (!Files.isRegularFile(filePath)) {
+            System.err.println("Input file not found: " + filePath.toAbsolutePath());
+            System.err.println("Usage: java -jar group-21.jar <path-to-SPL-file>");
+            System.exit(1);
+        }
 
         Frontend frontend = new Frontend();
 
@@ -23,8 +30,9 @@ public class Main {
 
             DebugPrinter.printTree(result.getTree(), result.getParser());
             System.out.println("Outputting the XML now");
-            XMLWriter.write(result.getTree(), result.getParser(), Path.of("tree.xml"));
-            System.out.println("Check tree.xml");
+            Path xmlPath = Path.of("tree.xml");
+            XMLWriter.write(result.getTree(), result.getParser(), xmlPath);
+            System.out.println("Check " + xmlPath.toAbsolutePath());
 
         } else {
 
