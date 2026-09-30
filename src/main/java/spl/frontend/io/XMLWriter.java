@@ -28,6 +28,7 @@ public final class XMLWriter {
         this.parser = parser;
         this.doc = doc;
     }
+
     /** Creates an XML element with the specified name and text content. */
     private Element textElement(String name, String text) {
         Element el = doc.createElement(name);
@@ -54,7 +55,6 @@ public final class XMLWriter {
     }
 
     /** Adds this node and its subtree to the document; returns this node's id. */
-    /** Adds this node and its subtree to the document; returns this node's id. */
     private int addNode(ParseTree node, Integer parentId, Element container) {
         int id = nextId++;
         boolean isRoot = (parentId == null);
@@ -62,9 +62,30 @@ public final class XMLWriter {
 
         Element el = doc.createElement(isRoot ? "root" : isLeaf ? "leaf" : "inner");
         el.appendChild(textElement("id", String.valueOf(id)));
-        el.appendChild(textElement("contents", isLeaf
-                ? node.getText()
-                : parser.getRuleNames()[((RuleContext) node).getRuleIndex()]));
+
+        if (isLeaf) {
+            TerminalNode leaf = (TerminalNode) node;
+            Token token = leaf.getSymbol();
+            String rawText = node.getText();
+            String symbolicName = parser.getVocabulary().getSymbolicName(token.getType());
+
+            if ("USER_ID".equals(symbolicName)) {
+                el.appendChild(textElement("contents", "USER-DEFINED-NAME"));
+                el.appendChild(textElement("value", rawText));
+            } else if ("NUM_LIT".equals(symbolicName)) {
+                el.appendChild(textElement("contents", "NUM_LIT"));
+                el.appendChild(textElement("value", rawText));
+            } else if ("STRING".equals(symbolicName)) {
+                el.appendChild(textElement("contents", "STRING"));
+                el.appendChild(textElement("value", rawText));
+            } else {
+                // Keywords ('num', 'void', 'if', etc.) and operators/punctuation
+                el.appendChild(textElement("contents", rawText));
+            }
+        } else {
+            el.appendChild(textElement("contents",
+                    parser.getRuleNames()[((RuleContext) node).getRuleIndex()]));
+        }
 
         Element children = null;
         if (!isLeaf) {
