@@ -66,6 +66,7 @@ public final class XMLWriter {
         if (isLeaf) {
             TerminalNode leaf = (TerminalNode) node;
             Token token = leaf.getSymbol();
+            el.appendChild(textElement("line", String.valueOf(token.getLine())));
             String rawText = node.getText();
             String symbolicName = parser.getVocabulary().getSymbolicName(token.getType());
 
