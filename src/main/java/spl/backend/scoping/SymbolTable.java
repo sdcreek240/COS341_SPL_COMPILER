@@ -15,6 +15,7 @@ public final class SymbolTable {
     private final List<Scope> allScopes = new ArrayList<>();
     private final Map<Integer, VarSymbol> varBindings = new HashMap<>();   // tree node id -> variable
     private final Map<Integer, FuncSymbol> funcBindings = new HashMap<>(); // tree node id -> function
+    private final Map<String, String> types = new HashMap<>();            // unique name -> type
     private Scope current = null;
     private int varCounter = 0;
     private int funcCounter = 0;
@@ -101,6 +102,14 @@ public final class SymbolTable {
         return f;
     }
 
+    // ---------- type information (phase 2b) ----------
+
+    /** Records the type of a symbol ("numeric", "procedure", ...), keyed by its unique name (v1, f2, ...). */
+    public void setType(String uniqueName, String type) { types.put(uniqueName, type); }
+
+    /** Type of a symbol; "unknown" until the type analyser has visited its declaration. */
+    public String typeOf(String uniqueName)             { return types.getOrDefault(uniqueName, "unknown"); }
+
     // ---------- results ----------
 
     /** Symbol bound to a USER-DEFINED-NAME leaf (declaration or use), or null. */
@@ -115,10 +124,12 @@ public final class SymbolTable {
             sb.append("Scope level ").append(s.level()).append('\n');
             for (VarSymbol v : s.variables().all())
                 sb.append("  var  ").append(v.name()).append(" -> ").append(v.uniqueName())
-                  .append(v.isParameter() ? " (param)" : "").append('\n');
+                  .append(v.isParameter() ? " (param)" : "")
+                  .append(" [").append(typeOf(v.uniqueName())).append("]").append('\n');
             for (FuncSymbol f : s.functions().all())
                 sb.append("  func ").append(f.name()).append(" -> ").append(f.uniqueName())
-                  .append(" : ").append(f.returnType()).append('\n');
+                  .append(" : ").append(f.returnType())
+                  .append(" [").append(typeOf(f.uniqueName())).append("]").append('\n');
         }
         return sb.toString();
     }
