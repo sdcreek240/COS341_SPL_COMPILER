@@ -1,0 +1,2 @@
+#x : :
+if and( larger( #x 1 ) lesser( #x 5 ) ) then { print "yes" ; } else { print "no" ; } ;

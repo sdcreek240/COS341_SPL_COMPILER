@@ -1,35 +1,20 @@
 package spl.backend.generator;
 
 import java.util.List;
-
 import org.w3c.dom.Element;
-
 import spl.backend.tree.SyntaxTree;
 
 final class LoopGenerator {
-
     private final CodeGenerator generator;
     private final SyntaxTree tree;
 
-    /**
-     * Creates the loop translator.
-     */
     LoopGenerator(CodeGenerator generator) {
         this.generator = generator;
         this.tree = generator.tree();
     }//END_LoopGenerator
 
-    /**
-     * Translates a loop in either condition-first or body-first form.
-     */
     void translateLoop(Element loop) {
         List<Element> kids = tree.kids(loop);
-
-        if (kids.isEmpty()) {
-            throw new IllegalStateException(
-                    "Empty loop node id=" + SyntaxTree.id(loop));
-        }
-
         String first = SyntaxTree.contents(kids.get(0));
 
         if ("cond".equals(first)) {
@@ -37,88 +22,68 @@ final class LoopGenerator {
         } else if ("do".equals(first)) {
             translateBodyFirst(kids, loop);
         } else {
-            throw new IllegalStateException(
-                    "Unexpected loop child '" + first
-                            + "' at node id=" + SyntaxTree.id(loop));
+            throw new IllegalStateException("Unexpected loop child");
         }
     }//END_translateLoop
 
-    /**
-     * Translates while and until loops with the condition first.
-     */
     private void translateConditionFirst(List<Element> kids, Element loop) {
-        if (kids.size() < 6) {
-            throw new IllegalStateException(
-                    "Malformed condition-first loop at node id="
-                            + SyntaxTree.id(loop));
-        }
-
         String kind = loopKind(kids.get(0));
         Element condition = kids.get(1);
         Element body = kids.get(4);
 
-        String startLabel = generator.freshLabel();
-        String bodyLabel = generator.freshLabel();
-        String endLabel = generator.freshLabel();
+        // Spec order: ls, le, d
+        String ls = generator.freshLabel();
+        String le = generator.freshLabel();
+        String d  = generator.freshLabel();
 
-        generator.emit(startLabel + ": /* loop start */\n");
+        generator.emit(ls + ": /* until */\n");
 
+        generator.setFallThroughLabel(d);
         if ("while".equals(kind)) {
-            generator.translateBool(condition, bodyLabel, endLabel);
-        } else if ("until".equals(kind)) {
-            generator.translateBool(condition, endLabel, bodyLabel);
-        } else {
-            throw new IllegalStateException("Unknown loop condition: " + kind);
-        }
 
-        generator.emit(bodyLabel + ": /* loop body */\n");
+            generator.translateBool(condition, d, le);
+        } else {
+            // until BOOL
+            generator.translateBool(condition, le, d);
+        }
+        generator.setFallThroughLabel(null);
+
+        generator.emit(d + ": /* do */\n");
         generator.translateAlgo(body);
-        generator.emit("goto " + startLabel + ";\n");
-        generator.emit(endLabel + ": /* loop end */\n");
+        generator.emit("goto " + ls + ";\n");
+        
+        generator.emit(le + ":\n");
+        generator.emit("/* exit */\n");
     }//END_translateConditionFirst
 
-    /**
-     * Translates while and until loops with the body first.
-     */
     private void translateBodyFirst(List<Element> kids, Element loop) {
-        if (kids.size() < 6) {
-            throw new IllegalStateException(
-                    "Malformed body-first loop at node id="
-                            + SyntaxTree.id(loop));
-        }
-
         Element body = kids.get(2);
         String kind = loopKind(kids.get(4));
         Element condition = kids.get(5);
 
-        String bodyLabel = generator.freshLabel();
-        String endLabel = generator.freshLabel();
+        // Spec order: ld, le
+        String ld = generator.freshLabel();
+        String le = generator.freshLabel();
 
-        generator.emit(bodyLabel + ": /* loop body */\n");
+        generator.emit(ld + ": /* do */\n");
         generator.translateAlgo(body);
-
+        
+        generator.emit("/* while */\n");
+        
+        generator.setFallThroughLabel(le);
         if ("while".equals(kind)) {
-            generator.translateBool(condition, bodyLabel, endLabel);
-        } else if ("until".equals(kind)) {
-            generator.translateBool(condition, endLabel, bodyLabel);
+            // do-while: repeat if true, exit if false
+            generator.translateBool(condition, ld, le);
         } else {
-            throw new IllegalStateException("Unknown loop condition: " + kind);
+            // do-until = do-while not(BOOL). Swaps targets.
+            generator.translateBool(condition, le, ld);
         }
+        generator.setFallThroughLabel(null);
 
-        generator.emit(endLabel + ": /* loop end */\n");
+        generator.emit(le + ": /* exit */\n");
     }//END_translateBodyFirst
 
-    /**
-     * Reads the loop condition keyword.
-     */
     private String loopKind(Element cond) {
-        List<Element> kids = tree.kids(cond);
-
-        if (kids.isEmpty()) {
-            throw new IllegalStateException(
-                    "Empty loop condition node id=" + SyntaxTree.id(cond));
-        }
-
-        return SyntaxTree.contents(kids.get(0));
+        return SyntaxTree.contents(tree.kids(cond).get(0));
     }//END_loopKind
-}//END_LoopGenerator
+}

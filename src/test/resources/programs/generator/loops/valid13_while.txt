@@ -1,7 +1,0 @@
-#i : :
-
-#i = 0 ;
-while lesser( #i 3 ) do {
-  print ( #i ) ;
-  #i = add( #i 1 ) ;
-} ;

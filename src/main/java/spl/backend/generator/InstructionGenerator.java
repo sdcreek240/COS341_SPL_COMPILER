@@ -35,7 +35,7 @@ final class InstructionGenerator {
     private void translateAlgo(Element algo, boolean topLevel) {
         java.util.List<Element> kids = tree.kids(algo);
         if (kids.isEmpty()) {
-            if (topLevel) generator.emit("/* end */\n");
+            generator.emit("/* end */\n"); 
             return;
         }
         Element instr = kids.get(0);
@@ -201,21 +201,25 @@ final class InstructionGenerator {
         Element thenBody = kids.get(4);
         Element elseBody = kids.get(8);
 
-        String thenLabel = generator.freshLabel();
-        String elseLabel = generator.freshLabel();
-        String endLabel = generator.freshLabel();
+        String la = generator.freshLabel();
+        String lb = generator.freshLabel();
+        String lc = generator.freshLabel();
 
         generator.emit("/* if */\n");
-        generator.translateBool(condition, thenLabel, elseLabel);
 
-        generator.emit(elseLabel + ": /* else */\n");
+        // Tell the boolean generator that 'lb' is the next label
+        generator.setFallThroughLabel(lb);
+        generator.translateBool(condition, la, lb);
+        generator.setFallThroughLabel(null);
+
+        generator.emit(lb + ": /* else */\n");
         translateAlgo(elseBody);
-        generator.emit("goto " + endLabel + ";\n");
+        generator.emit("goto " + lc + ";\n");
 
-        generator.emit(thenLabel + ": /* then */\n");
+        generator.emit(la + ": /* then */\n");
         translateAlgo(thenBody);
 
-        generator.emit(endLabel + ": /* continue */\n");
+        generator.emit(lc + ": /* continue */\n");
     }//END_translateBranch
 
     /**

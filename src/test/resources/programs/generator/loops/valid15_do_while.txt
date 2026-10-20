@@ -1,6 +1,0 @@
-#i : :
-
-#i = 0 ;
-do {
-  #i = add( #i 1 ) ;
-} while lesser( #i 3 ) ;

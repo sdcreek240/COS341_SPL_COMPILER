@@ -77,7 +77,11 @@ final class BooleanGenerator {
 
         generator.emit("if ( " + leftTemp + " " + operator + " "
                 + rightTemp + " ) goto " + trueLabel + ";\n");
-        generator.emit("goto " + falseLabel + ";\n");
+
+        // SPEC: Only emit the false-jump if we are not naturally falling through
+        if (!falseLabel.equals(generator.getFallThroughLabel())) {
+            generator.emit("goto " + falseLabel + ";\n");
+        }
     }//END_translateComparison
 
     /**

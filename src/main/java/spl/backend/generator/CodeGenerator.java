@@ -29,6 +29,7 @@ public final class CodeGenerator {
     private int tempCounter;
     private int labelCounter;
     private boolean programUsesInt;
+    private String fallThroughLabel = null;
 
     /**
      * Creates a generator for a semantically validated syntax tree.
@@ -215,4 +216,12 @@ public final class CodeGenerator {
 
         return false;
     }//END_treeContainsMod
+
+    void setFallThroughLabel(String label) {
+        this.fallThroughLabel = label;
+    }//END_setFallThroughLabel
+
+    String getFallThroughLabel() {
+        return fallThroughLabel;
+    }//END_getFallThroughLabel
 }//END_CodeGenerator
