@@ -1,0 +1,4 @@
+#x : :
+if eq( #x 1 ) then { 
+    if eq( #x 2 ) then { print "a" ; } else { print "b" ; } ;
+} else { print "c" ; } ;

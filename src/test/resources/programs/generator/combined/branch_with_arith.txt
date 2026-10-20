@@ -1,0 +1,11 @@
+#i : :
+
+#i = 0 ;
+while lesser( #i 3 ) do {
+    if larger( add( #i 1 ) 2 ) then {
+        print "big" ;
+    } else {
+        print ( #i ) ;
+    } ;
+    #i = add( #i 1 ) ;
+} ;
