@@ -1,0 +1,6 @@
+#i : :
+
+#i = 3 ;
+if eq( #i 3 ) then { print "eq" ; } else { print "ne" ; } ;
+if larger( #i 1 ) then { print "gt" ; } else { print "le" ; } ;
+if lesser( #i 5 ) then { print "lt" ; } else { print "ge" ; } ;

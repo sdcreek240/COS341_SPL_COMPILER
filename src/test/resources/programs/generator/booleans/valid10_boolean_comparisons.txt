@@ -1,0 +1,6 @@
+#i : :
+
+#i = 3 ;
+if and( larger( #i 1 ) lesser( #i 5 ) ) then { print "in" ; } else { print "out" ; } ;
+if or( eq( #i 0 ) eq( #i 3 ) ) then { print "hit" ; } else { print "miss" ; } ;
+if not( eq( #i 3 ) ) then { print "ne3" ; } else { print "eq3" ; } ;
