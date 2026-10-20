@@ -13,7 +13,7 @@ import spl.backend.scoping.SemanticAnalyser;
 import spl.backend.scoping.SemanticException;
 import spl.backend.scoping.SymbolTable;
 import spl.backend.scoping.TypeAnalyser;
-
+import spl.backend.tree.SyntaxTree;
 //Code gen
 import spl.backend.generator.CodeGenerator;
 
@@ -56,8 +56,10 @@ public class Main {
             }
 
             try {
+                SyntaxTree tree = SyntaxTree.load(xmlPath);
+                
                 Path codePath = Path.of("target.c");
-                new CodeGenerator(table).generateToFile(codePath);
+                new CodeGenerator(table, tree).generateToFile(codePath);
                 System.out.println("Code generation OK - written to " + codePath.toAbsolutePath());
             } catch (RuntimeException e){
                 System.err.println("Code generation failed: "+e.getMessage());
