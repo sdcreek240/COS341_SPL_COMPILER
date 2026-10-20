@@ -87,62 +87,68 @@ final class BooleanGenerator {
     /**
      * Translates not by swapping the destination labels.
      */
-    private void translateNot(
-            List<Element> kids, String trueLabel, String falseLabel) {
-
+    private void translateNot(List<Element> kids, String trueLabel, String falseLabel) {
         if (kids.size() < 4) {
-            throw new IllegalStateException(
-                    "Malformed not expression at node id="
-                            + SyntaxTree.id(kids.get(0)));
+            throw new IllegalStateException("Malformed not expression at node id="
+                    + SyntaxTree.id(kids.get(0)));
         }
 
+        String saved = generator.getFallThroughLabel();
+        generator.setFallThroughLabel(null);
+
         generator.translateBool(kids.get(2), falseLabel, trueLabel);
+
+        generator.setFallThroughLabel(saved);
     }//END_translateNot
 
     /**
      * Translates or by evaluating the second operand if the first is false.
      */
-    private void translateOr(
-            List<Element> kids, String trueLabel, String falseLabel) {
-
+    private void translateOr(List<Element> kids, String trueLabel, String falseLabel) {
         if (kids.size() < 5) {
-            throw new IllegalStateException(
-                    "Malformed or expression at node id="
-                            + SyntaxTree.id(kids.get(0)));
+            throw new IllegalStateException("Malformed or expression at node id="
+                    + SyntaxTree.id(kids.get(0)));
         }
 
         String rightStart = generator.freshLabel();
 
+        String saved = generator.getFallThroughLabel();
+        generator.setFallThroughLabel(null);
+
         generator.translateBool(kids.get(2), trueLabel, rightStart);
         generator.emit(rightStart + ": ;\n");
         generator.translateBool(kids.get(3), trueLabel, falseLabel);
+
+        generator.setFallThroughLabel(saved);
     }//END_translateOr
 
     /**
      * Translates and by evaluating the second operand only if the first is true.
      */
-    private void translateAnd(
-            List<Element> kids, String trueLabel, String falseLabel) {
-
+    private void translateAnd(List<Element> kids, String trueLabel, String falseLabel) {
         if (kids.size() < 5) {
-            throw new IllegalStateException(
-                    "Malformed and expression at node id="
-                            + SyntaxTree.id(kids.get(0)));
+                throw new IllegalStateException("Malformed and expression at node id="
+                        + SyntaxTree.id(kids.get(0)));
         }
 
         String rightStart = generator.freshLabel();
 
+        String saved = generator.getFallThroughLabel();
+        generator.setFallThroughLabel(null);
+
         generator.translateBool(kids.get(2), rightStart, falseLabel);
         generator.emit(rightStart + ": ;\n");
         generator.translateBool(kids.get(3), trueLabel, falseLabel);
+
+        generator.setFallThroughLabel(saved);
     }//END_translateAnd
 
-    /**
-     * Declares and returns a fresh numeric temporary.
-     */
-    private String declareTemp() {
-        String temp = generator.freshTemp();
-        generator.emit(generator.numericType() + " " + temp + ";\n");
-        return temp;
-    }//END_declareTemp
+        /**
+         * Declares and returns a fresh numeric temporary.
+         */
+        private String declareTemp() {
+                String temp = generator.freshTemp();
+                generator.emit(generator.numericType() + " " + temp + ";\n");
+                return temp;
+        }//END_declareTemp
 }//END_BooleanGenerator

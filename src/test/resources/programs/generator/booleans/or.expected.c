@@ -11,6 +11,7 @@ vN2 = v1;
 float vN3;
 vN3 = 2;
 if ( vN2 == vN3 ) goto L0;
+goto L1;
 L1: /* else */
 std::cout << "no";
 /* end */
