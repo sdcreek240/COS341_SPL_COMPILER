@@ -1,0 +1,10 @@
+#i #j : :
+
+#i = 0 ;
+while lesser( #i 2 ) do {
+    #j = 0 ;
+    do {
+        #j = add( #j 1 ) ;
+    } while lesser( #j 2 ) ;
+    #i = add( #i 1 ) ;
+} ;
