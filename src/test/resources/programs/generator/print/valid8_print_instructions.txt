@@ -1,0 +1,8 @@
+#i : :
+
+comment "hello" ;
+#i = 42 ;
+print "answer" ;
+print ( #i ) ;
+nop ;
+print ( #i ) ;
