@@ -8,6 +8,12 @@ import spl.frontend.exceptionHandling.CompilationResult;
 import spl.frontend.exceptionHandling.DebugPrinter;
 import spl.frontend.io.XMLWriter;
 
+//Backend Scoping
+import spl.backend.scoping.SemanticAnalyser;
+import spl.backend.scoping.SemanticException;
+import spl.backend.scoping.SymbolTable;
+import spl.backend.scoping.TypeAnalyser;
+
 public class Main {
     public static void main(String[] args) {
 
@@ -23,7 +29,6 @@ public class Main {
 
         CompilationResult result = frontend.processFile(filePath);
 
-        
         if (result.isSuccess()) {
 
             System.out.println("Parsed OK: " + filePath.getFileName());
@@ -33,6 +38,17 @@ public class Main {
             Path xmlPath = Path.of("tree.xml");
             XMLWriter.write(result.getTree(), result.getParser(), xmlPath);
             System.out.println("Check " + xmlPath.toAbsolutePath());
+
+            // Scope analysis
+            try {
+                SymbolTable table = SemanticAnalyser.analyse(xmlPath, xmlPath);   // 2a: scopes and names
+                System.out.println("Scope analysis OK");
+
+                TypeAnalyser.analyse(xmlPath, xmlPath, table);                    // 2b: types
+                System.out.println("Type analysis OK - written to " + xmlPath.toAbsolutePath());
+            } catch (SemanticException e) {
+                System.out.println("Semantic error: " + e.getMessage());
+            }
 
         } else {
 
