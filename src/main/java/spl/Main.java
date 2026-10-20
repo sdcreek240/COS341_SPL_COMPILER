@@ -14,6 +14,9 @@ import spl.backend.scoping.SemanticException;
 import spl.backend.scoping.SymbolTable;
 import spl.backend.scoping.TypeAnalyser;
 
+//Code gen
+import spl.backend.generator.CodeGenerator;
+
 public class Main {
     public static void main(String[] args) {
 
@@ -40,14 +43,25 @@ public class Main {
             System.out.println("Check " + xmlPath.toAbsolutePath());
 
             // Scope analysis
+            SymbolTable table;
             try {
-                SymbolTable table = SemanticAnalyser.analyse(xmlPath, xmlPath);   // 2a: scopes and names
+                table = SemanticAnalyser.analyse(xmlPath, xmlPath);   // 2a: scopes and names
                 System.out.println("Scope analysis OK");
 
                 TypeAnalyser.analyse(xmlPath, xmlPath, table);                    // 2b: types
                 System.out.println("Type analysis OK - written to " + xmlPath.toAbsolutePath());
             } catch (SemanticException e) {
                 System.out.println("Semantic error: " + e.getMessage());
+                return; //dont run code gen
+            }
+
+            try {
+                Path codePath = Path.of("target.c");
+                new CodeGenerator(table).generateToFile(codePath);
+                System.out.println("Code generation OK - written to " + codePath.toAbsolutePath());
+            } catch (RuntimeException e){
+                System.err.println("Code generation failed: "+e.getMessage());
+                throw e;
             }
 
         } else {

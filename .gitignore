@@ -28,6 +28,7 @@ target/
 
 # Generated output
 *.xml
+*.c
 
 # LL1 test program - Aidan - on my local branch, its a generated test program so didnt wanna put it on the repo
 *LL1DiagnosticRunner*
