@@ -1,0 +1,4 @@
+#i : :
+
+#i = 3 ;
+if eq( #i 3 ) then { print "yes" ; } else { print "no" ; } ;
