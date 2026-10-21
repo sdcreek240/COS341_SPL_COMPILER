@@ -7,23 +7,22 @@ import org.w3c.dom.Element;
 import spl.backend.scoping.VarSymbol;
 import spl.backend.tree.SyntaxTree;
 
+/** Translates SPL numeric terms and arithmetic operations. */
 final class TermGenerator {
 
     private final CodeGenerator generator;
     private final SyntaxTree tree;
 
-    /**
-     * Creates the term translator.
-     */
+    /** Creates the term translator. */
     TermGenerator(CodeGenerator generator) {
+        
         this.generator = generator;
         this.tree = generator.tree();
     }//END_TermGenerator
 
-    /**
-     * Translates a term and stores its result in the supplied variable.
-     */
+    /** Translates a term and stores its result in the supplied variable. */
     void translateTerm(Element term, String resultVar) {
+
         List<Element> kids = tree.kids(term);
 
         if (kids.isEmpty()) {
@@ -40,6 +39,21 @@ final class TermGenerator {
                             + SyntaxTree.value(head) + ";\n");
 
             case "USER-DEFINED-NAME" -> {
+                // A non-empty termTail beginning with "(" represents a call.
+                Element tail = kids.size() > 1 ? kids.get(1) : null;
+                List<Element> tailKids = tail == null
+                        ? List.of()
+                        : tree.kids(tail);
+
+                if (!tailKids.isEmpty()
+                        && "(".equals(SyntaxTree.contents(tailKids.get(0)))
+                        && tailKids.size() == 3) {
+                    Element input = tailKids.get(1);
+                    generator.callInliner().inlineCall(
+                            head, input, resultVar, true);
+                    return;
+                }
+
                 VarSymbol symbol = generator.symbols()
                         .variableAt(SyntaxTree.id(head));
 
@@ -51,10 +65,6 @@ final class TermGenerator {
 
                 generator.emit(resultVar + " = "
                         + symbol.uniqueName() + ";\n");
-
-                if (kids.size() > 1) {
-                    rejectFunctionCall(kids.get(1));
-                }
             }
 
             case "add" -> translateBinary(kids, resultVar, "+");
@@ -63,16 +73,13 @@ final class TermGenerator {
             case "div" -> translateBinary(kids, resultVar, "/");
             case "mod" -> translateBinary(kids, resultVar, "%");
             case "neg" -> translateNeg(kids, resultVar);
-
             default -> throw new UnsupportedOperationException(
                     "Unsupported term '" + label + "' at node id="
                             + SyntaxTree.id(term));
         }
     }//END_translateTerm
 
-    /**
-     * Translates a binary arithmetic operation.
-     */
+    /** Translates a binary arithmetic operation. */
     private void translateBinary(
             List<Element> kids, String resultVar, String operator) {
 
@@ -95,10 +102,9 @@ final class TermGenerator {
                 + operator + " " + rightTemp + ";\n");
     }//END_translateBinary
 
-    /**
-     * Translates unary numeric negation.
-     */
+    /** Translates unary numeric negation. */
     private void translateNeg(List<Element> kids, String resultVar) {
+
         if (kids.size() < 4) {
             throw new IllegalStateException(
                     "Malformed neg term at node id="
@@ -111,22 +117,11 @@ final class TermGenerator {
         generator.emit(resultVar + " = -" + operandTemp + ";\n");
     }//END_translateNeg
 
-    /**
-     * Declares and returns a fresh numeric temporary.
-     */
+    /** Declares and returns a fresh numeric temporary. */
     private String declareTemp() {
+
         String temp = generator.freshTemp();
         generator.emit(generator.numericType() + " " + temp + ";\n");
         return temp;
     }//END_declareTemp
-
-    /**
-     * Rejects function calls, which are deferred to Phase 3b.
-     */
-    private void rejectFunctionCall(Element tail) {
-        if (!tree.kids(tail).isEmpty()) {
-            throw new UnsupportedOperationException(
-                    "Function-call code generation is deferred to Phase 3b");
-        }
-    }//END_rejectFunctionCall
 }//END_TermGenerator

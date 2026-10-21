@@ -15,6 +15,7 @@ import spl.backend.scoping.SymbolTable;
 import spl.backend.scoping.VarSymbol;
 import spl.backend.tree.SyntaxTree;
 
+/** Coordinates SPL-to-C++ code generation and shared translation state. */
 public final class CodeGenerator {
 
     public static final Path DEFAULT_OUTPUT = Paths.get("target.cpp");
@@ -27,16 +28,18 @@ public final class CodeGenerator {
     private final InstructionGenerator instructions;
     private final LoopGenerator loops;
 
+    private final FunctionMineGenerator functions;
+    private final CallInliner inliner;
+
     private StringBuilder out;
     private int tempCounter;
     private int labelCounter;
     private boolean programUsesInt;
     private String fallThroughLabel = null;
 
-    /**
-     * Creates a generator for a semantically validated syntax tree.
-     */
+    /** Creates a generator for a semantically validated syntax tree. */
     public CodeGenerator(SymbolTable symbols, SyntaxTree tree) {
+
         if (symbols == null) {
             throw new IllegalArgumentException("symbols must not be null");
         }
@@ -51,19 +54,32 @@ public final class CodeGenerator {
         this.booleans = new BooleanGenerator(this);
         this.instructions = new InstructionGenerator(this);
         this.loops = new LoopGenerator(this);
+
+        this.functions = new FunctionMineGenerator(this);
+        this.inliner = new CallInliner(this);
     }//END_CodeGenerator
 
-    /**
-     * Generates target code and writes it to the default output file.
-     */
+    /** Declares and returns a fresh numeric temporary in the current type. */
+    String declareTemp() {
+
+        String temp = freshTemp();
+        emit(numericType() + " " + temp + ";\n");
+        return temp;
+    }//END_declareTemp
+
+    /** Returns the function-call inliner used by this generator. */
+    CallInliner callInliner() {
+        return inliner;
+    }//END_callInliner
+
+    /** Generates target code and writes it to the default output file. */
     public void generateToFile() {
         generateToFile(DEFAULT_OUTPUT);
     }//END_generateToFile
 
-    /**
-     * Generates target code and writes it to the specified file.
-     */
+    /** Generates target code and writes it to the specified file. */
     public void generateToFile(Path outputPath) {
+
         if (outputPath == null) {
             throw new IllegalArgumentException("outputPath must not be null");
         }
@@ -86,13 +102,13 @@ public final class CodeGenerator {
         }
     }//END_generateToFile
 
-    /**
-     * Generates target code and returns it as a string.
-     */
+    /** Generates target code and returns it as a string. */
     public String generate() {
+
         out = new StringBuilder();
         tempCounter = 0;
         labelCounter = 0;
+        fallThroughLabel = null;
         programUsesInt = decideNumericType(tree.root());
 
         Element p = tree.child(tree.root(), "p");
@@ -100,34 +116,43 @@ public final class CodeGenerator {
             throw new IllegalStateException("No <p> node found under root");
         }
 
-        // 1. code-mine comment block (empty until Step E fills it)
-        emit("/* begin of the non-executable code-mine for later inlining */\n");
-        // Step E will emit function mines here.
-        emit("/* end of the non-executable code-mine */\n");
+        emit("/* begin of the non-executable code-mine for later inlining\n");
 
-        // 2. start of executable C
+        Element fDecl = tree.child(p, "f_decl");
+        if (fDecl == null) {
+            throw new IllegalStateException("No <f_decl> under <p>");
+        }
+
+        String mine = functions.generateMines(fDecl);
+        emit(mine);
+        if (!mine.endsWith("\n")) {
+            emit("\n");
+        }
+
+        emit("end of the non-executable code-mine */\n");
+
+        // Start the executable C++ section.
         emit("/* begin of executable C code */\n");
         emit("#include <iostream>\n");
 
-        // 3. main wrapper
+        // Emit the main wrapper.
         emit("int main()\n");
         emit("{\n");
 
-        // 4. global variable declarations
+        // Emit global variable declarations.
         Element vDecl = tree.child(p, "v_decl");
         if (vDecl == null) {
             throw new IllegalStateException("No <v_decl> under <p>");
         }
         emitVariableDeclarations(vDecl);
 
-        // 5. top-level algorithm
+        // Emit the top-level algorithm.
         Element algo = tree.child(p, "algo");
         if (algo == null) {
             throw new IllegalStateException("No <algo> under <p>");
         }
         instructions.translateProgram(algo);
 
-        // 6. closing
         emit("return 0;\n");
         emit("}\n");
         emit("/* end of executable C */\n");
@@ -135,18 +160,17 @@ public final class CodeGenerator {
         return out.toString();
     }//END_generate
 
-    /**
-     * V_DECL -> eps
-     * V_DECL -> NAME V_DECL
-     */
+    /** Emits declarations for a V_DECL chain. */
     private void emitVariableDeclarations(Element vDecl) {
+
         List<Element> kids = tree.kids(vDecl);
         if (kids.isEmpty()) {
             emit("\n");
             return;
         }
+
         Element nameLeaf = kids.get(0);
-        Element rest     = kids.get(1);
+        Element rest = kids.get(1);
 
         VarSymbol v = symbols.variableAt(SyntaxTree.id(nameLeaf));
         if (v == null) {
@@ -159,117 +183,78 @@ public final class CodeGenerator {
         emitVariableDeclarations(rest);
     }//END_emitVariableDeclarations
 
-    /**
-     * Finds the algorithm belonging to the top-level program.
-     */
-    private Element findTopLevelAlgo() {
-        Element p = tree.child(tree.root(), "p");
-
-        if (p == null) {
-            throw new IllegalStateException("No <p> node found under root");
-        }
-
-        Element algo = tree.child(p, "algo");
-        if (algo == null) {
-            throw new IllegalStateException("No <algo> node found under <p>");
-        }
-
-        return algo;
-    }//END_findTopLevelAlgo
-
-    /**
-     * Emits generated target code.
-     */
+    /** Emits generated target code into the current output buffer. */
     void emit(String code) {
         out.append(code);
     }//END_emit
 
-    /**
-     * Allocates a unique temporary variable name.
-     */
+    /** Allocates a unique temporary variable name. */
     String freshTemp() {
         return "vN" + tempCounter++;
     }//END_freshTemp
 
-    /**
-     * Allocates a unique control-flow label.
-     */
+    /** Allocates a unique control-flow label. */
     String freshLabel() {
         return "L" + labelCounter++;
     }//END_freshLabel
 
-    /**
-     * Returns the target type required by the program-wide numeric rule.
-     */
+    /** Returns the target numeric type required by the whole program. */
     String numericType() {
         return programUsesInt ? "int" : "float";
     }//END_numericType
 
-    /**
-     * Returns the syntax tree used by the generator.
-     */
+    /** Returns the syntax tree used by the generator. */
     SyntaxTree tree() {
         return tree;
     }//END_tree
 
-    /**
-     * Returns the symbol table produced by semantic analysis.
-     */
+    /** Returns the symbol table produced by semantic analysis. */
     SymbolTable symbols() {
         return symbols;
     }//END_symbols
 
-    /**
-     * Translates a numeric or arithmetic term.
-     */
+    /** Translates a numeric or arithmetic term. */
     void translateTerm(Element term, String resultVar) {
         terms.translateTerm(term, resultVar);
     }//END_translateTerm
 
-    /**
-     * Translates a Boolean expression into conditional jumps.
-     */
+    /** Translates a Boolean expression into conditional jumps. */
     void translateBool(Element bool, String trueLabel, String falseLabel) {
         booleans.translateBool(bool, trueLabel, falseLabel);
     }//END_translateBool
 
-    /**
-     * Translates an instruction.
-     */
-    void translateInstr(Element instr, java.util.List<Element> kids) {
+    /** Translates an instruction and its syntax-tree children. */
+    void translateInstr(Element instr, List<Element> kids) {
         instructions.translateInstr(instr, kids);
     }//END_translateInstr
 
-    /**
-     * Translates a sequence of instructions.
-     */
+    /** Translates a sequence of instructions. */
     void translateAlgo(Element algo) {
         instructions.translateAlgo(algo);
     }//END_translateAlgo
 
-    /**
-     * Translates a branch.
-     */
+    /** Translates a branch. */
     void translateBranch(Element branch) {
         instructions.translateBranch(branch);
     }//END_translateBranch
 
-    /**
-     * Translates a loop.
-     */
+    /** Translates a loop. */
     void translateLoop(Element loop) {
         loops.translateLoop(loop);
     }//END_translateLoop
 
-
+    /** Chooses the program-wide numeric type from the syntax tree. */
     private boolean decideNumericType(Element element) {
+
         if (containsLeaf(element, "mod")) return true;
         if (containsLeaf(element, "div")) return false;
         if (containsDecimalLiteral(element)) return false;
         return true;
     }//END_decideNumericType
 
+    /** Checks whether a syntax-tree subtree contains the given leaf. */
     private boolean containsLeaf(Element element, String contents) {
+
         if (contents.equals(SyntaxTree.contents(element))) return true;
         for (Element child : tree.kids(element)) {
             if (containsLeaf(child, contents)) return true;
@@ -277,7 +262,9 @@ public final class CodeGenerator {
         return false;
     }//END_containsLeaf
 
+    /** Checks whether a syntax-tree subtree contains a decimal numeric literal. */
     private boolean containsDecimalLiteral(Element element) {
+
         if ("NUM_LIT".equals(SyntaxTree.contents(element))
                 && SyntaxTree.value(element) != null
                 && SyntaxTree.value(element).contains(".")) {
@@ -289,12 +276,21 @@ public final class CodeGenerator {
         return false;
     }//END_containsDecimalLiteral
 
-    
+    /** Sets the label that can be reached by falling through. */
     void setFallThroughLabel(String label) {
         this.fallThroughLabel = label;
     }//END_setFallThroughLabel
 
+    /** Returns the current fall-through label, if one is set. */
     String getFallThroughLabel() {
         return fallThroughLabel;
     }//END_getFallThroughLabel
+
+    /** Redirects generated output to a different buffer and returns the old buffer. */
+    StringBuilder swapEmitTarget(StringBuilder newOut) {
+        
+        StringBuilder saved = this.out;
+        this.out = newOut;
+        return saved;
+    }//END_swapEmitTarget
 }//END_CodeGenerator

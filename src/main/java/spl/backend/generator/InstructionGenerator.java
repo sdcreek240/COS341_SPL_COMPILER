@@ -7,48 +7,48 @@ import org.w3c.dom.Element;
 import spl.backend.scoping.VarSymbol;
 import spl.backend.tree.SyntaxTree;
 
+/** Translates SPL instructions, branches, and algorithm sequences. */
 final class InstructionGenerator {
 
     private final CodeGenerator generator;
     private final SyntaxTree tree;
 
-    /**
-     * Creates the instruction translator.
-     */
+    /** Creates the instruction translator. */
     InstructionGenerator(CodeGenerator generator) {
         this.generator = generator;
         this.tree = generator.tree();
     }//END_InstructionGenerator
 
-    /** Top-level entry: emits the trailing*/
+    /** Translates the top-level algorithm and its trailing marker. */
     void translateProgram(Element topAlgo) {
         translateAlgo(topAlgo, true);
     }//END_translateProgram
 
-    /**
-     * Translates a sequence of instructions in source order.
-     */
+    /** Translates a sequence of instructions in source order. */
     void translateAlgo(Element algo) {
         translateAlgo(algo, false);
-    }
+    }//END_translateAlgo
 
+    /** Translates an algorithm, optionally identifying it as top-level. */
     private void translateAlgo(Element algo, boolean topLevel) {
-        java.util.List<Element> kids = tree.kids(algo);
+        
+        List<Element> kids = tree.kids(algo);
         if (kids.isEmpty()) {
-            generator.emit("/* end */\n"); 
+            generator.emit("/* end */\n");
             return;
         }
+
         Element instr = kids.get(0);
         translateInstr(instr, tree.kids(instr));
+
         if (kids.size() > 2) {
             translateAlgo(kids.get(2), topLevel);
         }
-    }
+    }//END_translateAlgo
 
-    /**
-     * Dispatches an instruction to its translator.
-     */
+    /** Dispatches an instruction to its translator. */
     void translateInstr(Element instr, List<Element> kids) {
+
         if (kids.isEmpty()) {
             throw new IllegalStateException(
                     "Empty instruction node id=" + SyntaxTree.id(instr));
@@ -69,17 +69,15 @@ final class InstructionGenerator {
                     translateBranch(kids.get(0));
             case "loop" ->
                     generator.translateLoop(kids.get(0));
-
             default -> throw new UnsupportedOperationException(
                     "Unsupported instruction '" + label
                             + "' at node id=" + SyntaxTree.id(instr));
         }
     }//END_translateInstr
 
-    /**
-     * Translates a print instruction.
-     */
+    /** Translates a print instruction. */
     private void translatePrint(List<Element> kids) {
+
         if (kids.size() != 2) {
             throw new IllegalStateException("Malformed print instruction");
         }
@@ -97,7 +95,6 @@ final class InstructionGenerator {
         if (outpKids.size() >= 2
                 && "(".equals(SyntaxTree.contents(outpKids.get(0)))
                 && "term".equals(SyntaxTree.contents(outpKids.get(1)))) {
-
             String temp = declareTemp();
             generator.translateTerm(outpKids.get(1), temp);
             generator.emit("std::cout << " + temp + ";\n");
@@ -109,10 +106,9 @@ final class InstructionGenerator {
                         + SyntaxTree.id(outp));
     }//END_translatePrint
 
-    /**
-     * Translates a comment instruction.
-     */
+    /** Translates a comment instruction. */
     private void translateComment(List<Element> kids) {
+
         if (kids.size() != 2
                 || !"STRING".equals(SyntaxTree.contents(kids.get(1)))) {
             throw new IllegalStateException("Malformed comment instruction");
@@ -130,11 +126,8 @@ final class InstructionGenerator {
         generator.emit("/* " + value + " */\n");
     }//END_translateComment
 
-    /**
-     * Translates an assignment or rejects a deferred function call.
-     */
-    private void translatePossibleAssign(
-            Element instr, List<Element> kids) {
+    /** Translates an assignment or inlines a procedure call. */
+    private void translatePossibleAssign(Element instr, List<Element> kids) {
 
         if (kids.size() != 2
                 || !"instrTail".equals(SyntaxTree.contents(kids.get(1)))) {
@@ -160,9 +153,10 @@ final class InstructionGenerator {
             return;
         }
 
-        if ("(".equals(first)) {
-            throw new UnsupportedOperationException(
-                    "Function-call code generation is deferred to Phase 3b");
+        if ("(".equals(first) && tailKids.size() == 3) {
+            Element input = tailKids.get(1);
+            generator.callInliner().inlineCall(lhs, input, null, false);
+            return;
         }
 
         throw new UnsupportedOperationException(
@@ -170,10 +164,9 @@ final class InstructionGenerator {
                         + SyntaxTree.id(instr));
     }//END_translatePossibleAssign
 
-    /**
-     * Translates an assignment using a temporary for its right-hand side.
-     */
+    /** Translates an assignment using a temporary for its right-hand side. */
     private void translateAssign(Element lhs, Element rhs) {
+
         VarSymbol symbol = generator.symbols()
                 .variableAt(SyntaxTree.id(lhs));
 
@@ -188,10 +181,9 @@ final class InstructionGenerator {
         generator.emit(symbol.uniqueName() + " = " + temp + ";\n");
     }//END_translateAssign
 
-    /**
-     * Translates an if-then-else branch using labels and jumps.
-     */
+    /** Translates a branch using labels and conditional jumps. */
     void translateBranch(Element branch) {
+
         List<Element> kids = tree.kids(branch);
 
         if (kids.size() < 10) {
@@ -225,10 +217,9 @@ final class InstructionGenerator {
         generator.emit(lc + ": ; /* continue */\n");
     }//END_translateBranch
 
-    /**
-     * Declares and returns a fresh numeric temporary.
-     */
+    /** Declares and returns a fresh numeric temporary. */
     private String declareTemp() {
+
         String temp = generator.freshTemp();
         generator.emit(generator.numericType() + " " + temp + ";\n");
         return temp;
