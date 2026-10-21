@@ -58,7 +58,7 @@ public class Main {
             try {
                 SyntaxTree tree = SyntaxTree.load(xmlPath);
                 
-                Path codePath = Path.of("target.c");
+                Path codePath = Path.of("target.cpp");
                 new CodeGenerator(table, tree).generateToFile(codePath);
                 System.out.println("Code generation OK - written to " + codePath.toAbsolutePath());
             } catch (RuntimeException e){

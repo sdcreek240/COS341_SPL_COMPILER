@@ -1,3 +1,11 @@
+/* begin of the non-executable code-mine for later inlining */
+/* end of the non-executable code-mine */
+/* begin of executable C code */
+#include <iostream>
+int main()
+{
+int v1 ;
+
 L0: ; /* do */
 /* nop */
 /* end */
@@ -9,3 +17,6 @@ vN1 = 3;
 if ( vN0 < vN1 ) goto L0;
 L1: ; /* exit */
 /* end */
+return 0;
+}
+/* end of executable C */

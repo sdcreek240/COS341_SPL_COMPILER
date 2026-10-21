@@ -7,10 +7,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.w3c.dom.Element;
 
 import spl.backend.scoping.SymbolTable;
+import spl.backend.scoping.VarSymbol;
 import spl.backend.tree.SyntaxTree;
 
 public final class CodeGenerator {
@@ -93,10 +95,69 @@ public final class CodeGenerator {
         labelCounter = 0;
         programUsesInt = decideNumericType(tree.root());
 
-        instructions.translateProgram(findTopLevelAlgo());
+        Element p = tree.child(tree.root(), "p");
+        if (p == null) {
+            throw new IllegalStateException("No <p> node found under root");
+        }
+
+        // 1. code-mine comment block (empty until Step E fills it)
+        emit("/* begin of the non-executable code-mine for later inlining */\n");
+        // Step E will emit function mines here.
+        emit("/* end of the non-executable code-mine */\n");
+
+        // 2. start of executable C
+        emit("/* begin of executable C code */\n");
+        emit("#include <iostream>\n");
+
+        // 3. main wrapper
+        emit("int main()\n");
+        emit("{\n");
+
+        // 4. global variable declarations
+        Element vDecl = tree.child(p, "v_decl");
+        if (vDecl == null) {
+            throw new IllegalStateException("No <v_decl> under <p>");
+        }
+        emitVariableDeclarations(vDecl);
+
+        // 5. top-level algorithm
+        Element algo = tree.child(p, "algo");
+        if (algo == null) {
+            throw new IllegalStateException("No <algo> under <p>");
+        }
+        instructions.translateProgram(algo);
+
+        // 6. closing
+        emit("return 0;\n");
+        emit("}\n");
+        emit("/* end of executable C */\n");
 
         return out.toString();
     }//END_generate
+
+    /**
+     * V_DECL -> eps
+     * V_DECL -> NAME V_DECL
+     */
+    private void emitVariableDeclarations(Element vDecl) {
+        List<Element> kids = tree.kids(vDecl);
+        if (kids.isEmpty()) {
+            emit("\n");
+            return;
+        }
+        Element nameLeaf = kids.get(0);
+        Element rest     = kids.get(1);
+
+        VarSymbol v = symbols.variableAt(SyntaxTree.id(nameLeaf));
+        if (v == null) {
+            throw new IllegalStateException(
+                    "No symbol bound to declared variable node id="
+                            + SyntaxTree.id(nameLeaf));
+        }
+
+        emit(numericType() + " " + v.uniqueName() + " ;\n");
+        emitVariableDeclarations(rest);
+    }//END_emitVariableDeclarations
 
     /**
      * Finds the algorithm belonging to the top-level program.

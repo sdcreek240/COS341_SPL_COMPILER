@@ -1,3 +1,11 @@
+/* begin of the non-executable code-mine for later inlining */
+/* end of the non-executable code-mine */
+/* begin of executable C code */
+#include <iostream>
+int main()
+{
+int v1 ;
+
 /* if */
 int vN0;
 vN0 = v1;
@@ -26,3 +34,6 @@ L5: ; /* continue */
 /* end */
 L2: ; /* continue */
 /* end */
+return 0;
+}
+/* end of executable C */
