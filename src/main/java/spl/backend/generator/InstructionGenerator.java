@@ -148,7 +148,9 @@ final class InstructionGenerator {
         List<Element> tailKids = tree.kids(tail);
 
         if (tailKids.isEmpty()) {
-            return;
+            throw new IllegalStateException(
+                    "Empty instrTail at node id=" + SyntaxTree.id(instr)
+                            + "; parser should not produce this shape");
         }
 
         String first = SyntaxTree.contents(tailKids.get(0));
@@ -207,19 +209,20 @@ final class InstructionGenerator {
 
         generator.emit("/* if */\n");
 
-        // Tell the boolean generator that 'lb' is the next label
+        String saved = generator.getFallThroughLabel();
+
         generator.setFallThroughLabel(lb);
         generator.translateBool(condition, la, lb);
-        generator.setFallThroughLabel(null);
+        generator.setFallThroughLabel(saved);
 
-        generator.emit(lb + ": /* else */\n");
+        generator.emit(lb + ": ; /* else */\n");
         translateAlgo(elseBody);
         generator.emit("goto " + lc + ";\n");
 
-        generator.emit(la + ": /* then */\n");
+        generator.emit(la + ": ; /* then */\n");
         translateAlgo(thenBody);
 
-        generator.emit(lc + ": /* continue */\n");
+        generator.emit(lc + ": ; /* continue */\n");
     }//END_translateBranch
 
     /**

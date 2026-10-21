@@ -36,7 +36,9 @@ final class LoopGenerator {
         String le = generator.freshLabel();
         String d  = generator.freshLabel();
 
-        generator.emit(ls + ": /* until */\n");
+        generator.emit(ls + ": ; /* until */\n");
+
+        String saved = generator.getFallThroughLabel();
 
         generator.setFallThroughLabel(d);
         if ("while".equals(kind)) {
@@ -46,13 +48,13 @@ final class LoopGenerator {
             // until BOOL
             generator.translateBool(condition, le, d);
         }
-        generator.setFallThroughLabel(null);
+        generator.setFallThroughLabel(saved);
 
-        generator.emit(d + ": /* do */\n");
+        generator.emit(d + ": ; /* do */\n");
         generator.translateAlgo(body);
         generator.emit("goto " + ls + ";\n");
         
-        generator.emit(le + ":\n");
+        generator.emit(le + ": ;\n");
         generator.emit("/* exit */\n");
     }//END_translateConditionFirst
 
@@ -65,10 +67,12 @@ final class LoopGenerator {
         String ld = generator.freshLabel();
         String le = generator.freshLabel();
 
-        generator.emit(ld + ": /* do */\n");
+        generator.emit(ld + ": ; /* do */\n");
         generator.translateAlgo(body);
         
         generator.emit("/* while */\n");
+
+        String saved = generator.getFallThroughLabel();
         
         generator.setFallThroughLabel(le);
         if ("while".equals(kind)) {
@@ -78,9 +82,9 @@ final class LoopGenerator {
             // do-until = do-while not(BOOL). Swaps targets.
             generator.translateBool(condition, le, ld);
         }
-        generator.setFallThroughLabel(null);
+        generator.setFallThroughLabel(saved);
 
-        generator.emit(le + ": /* exit */\n");
+        generator.emit(le + ": ; /* exit */\n");
     }//END_translateBodyFirst
 
     private String loopKind(Element cond) {

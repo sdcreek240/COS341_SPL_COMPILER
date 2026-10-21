@@ -15,7 +15,7 @@ import spl.backend.tree.SyntaxTree;
 
 public final class CodeGenerator {
 
-    public static final Path DEFAULT_OUTPUT = Paths.get("target.c");
+    public static final Path DEFAULT_OUTPUT = Paths.get("target.cpp");
 
     private final SymbolTable symbols;
     private final SyntaxTree tree;
@@ -91,7 +91,7 @@ public final class CodeGenerator {
         out = new StringBuilder();
         tempCounter = 0;
         labelCounter = 0;
-        programUsesInt = treeContainsMod(tree.root());
+        programUsesInt = decideNumericType(tree.root());
 
         instructions.translateProgram(findTopLevelAlgo());
 
@@ -200,23 +200,35 @@ public final class CodeGenerator {
         loops.translateLoop(loop);
     }//END_translateLoop
 
-    /**
-     * Checks whether the syntax tree contains a mod operation.
-     */
-    private boolean treeContainsMod(Element element) {
-        if ("mod".equals(SyntaxTree.contents(element))) {
+
+    private boolean decideNumericType(Element element) {
+        if (containsLeaf(element, "mod")) return true;
+        if (containsLeaf(element, "div")) return false;
+        if (containsDecimalLiteral(element)) return false;
+        return true;
+    }//END_decideNumericType
+
+    private boolean containsLeaf(Element element, String contents) {
+        if (contents.equals(SyntaxTree.contents(element))) return true;
+        for (Element child : tree.kids(element)) {
+            if (containsLeaf(child, contents)) return true;
+        }
+        return false;
+    }//END_containsLeaf
+
+    private boolean containsDecimalLiteral(Element element) {
+        if ("NUM_LIT".equals(SyntaxTree.contents(element))
+                && SyntaxTree.value(element) != null
+                && SyntaxTree.value(element).contains(".")) {
             return true;
         }
-
         for (Element child : tree.kids(element)) {
-            if (treeContainsMod(child)) {
-                return true;
-            }
+            if (containsDecimalLiteral(child)) return true;
         }
-
         return false;
-    }//END_treeContainsMod
+    }//END_containsDecimalLiteral
 
+    
     void setFallThroughLabel(String label) {
         this.fallThroughLabel = label;
     }//END_setFallThroughLabel
