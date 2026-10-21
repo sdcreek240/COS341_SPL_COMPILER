@@ -1,0 +1,1 @@
+#x : num #countto ( #n ) { #i : : #i = 0 ; while lesser( #i #n ) do { #i = add( #i 1 ) ; } ; return ( #i ) } : #x = #countto ( 3 ) ; print ( #x ) ;
