@@ -1,0 +1,1 @@
+#x : num #val ( ) { : : return ( 5 ) } : if larger( #val ( ) 3 ) then { print "big" ; } else { print "small" ; } ;

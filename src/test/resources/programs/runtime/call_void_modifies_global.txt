@@ -1,0 +1,1 @@
+#x : void #bump ( ) { : : #x = add( #x 1 ) ; return } : #x = 10 ; #bump ( ) ; print ( #x ) ;

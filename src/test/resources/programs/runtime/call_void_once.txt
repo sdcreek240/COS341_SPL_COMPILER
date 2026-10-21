@@ -1,0 +1,1 @@
+#msg : void #shout ( #m ) { : : print ( #m ) ; return } : #shout ( 42 ) ;
