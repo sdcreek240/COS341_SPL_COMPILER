@@ -1,0 +1,1 @@
+#x : num #double ( #n ) { : : return ( mul( #n 2 ) ) } : #x = #double ( 5 ) ; print ( #x ) ;

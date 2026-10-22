@@ -1,21 +1,35 @@
+/* begin of the non-executable code-mine for later inlining
+
+end of the non-executable code-mine */
+/* begin of executable C code */
+#include <iostream>
+int main()
+{
+int v1 ;
+
 /* if */
-float vN0;
+int vN0;
 vN0 = v1;
-float vN1;
+int vN1;
 vN1 = 1;
 if ( vN0 > vN1 ) goto L3;
+goto L1;
 L3: ;
-float vN2;
+int vN2;
 vN2 = v1;
-float vN3;
+int vN3;
 vN3 = 5;
 if ( vN2 < vN3 ) goto L0;
-L1: /* else */
+goto L1;
+L1: ; /* else */
 std::cout << "no";
 /* end */
 goto L2;
-L0: /* then */
+L0: ; /* then */
 std::cout << "yes";
 /* end */
-L2: /* continue */
+L2: ; /* continue */
 /* end */
+return 0;
+}
+/* end of executable C */

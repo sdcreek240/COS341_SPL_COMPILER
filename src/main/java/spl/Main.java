@@ -55,14 +55,20 @@ public class Main {
                 return; //dont run code gen
             }
 
+            SyntaxTree tree = SyntaxTree.load(xmlPath);
+
             try {
-                SyntaxTree tree = SyntaxTree.load(xmlPath);
-                
-                Path codePath = Path.of("target.c");
-                new CodeGenerator(table, tree).generateToFile(codePath);
-                System.out.println("Code generation OK - written to " + codePath.toAbsolutePath());
-            } catch (RuntimeException e){
-                System.err.println("Code generation failed: "+e.getMessage());
+                java.nio.file.Files.deleteIfExists(CodeGenerator.DEFAULT_OUTPUT);
+            } catch (java.io.IOException e) {
+                System.err.println("Warning: could not delete stale target.cpp: " + e.getMessage());
+            }
+
+            try {
+                new CodeGenerator(table, tree).generateToFile();
+                System.out.println("Code generation OK - written to " +
+                        CodeGenerator.DEFAULT_OUTPUT.toAbsolutePath());
+            } catch (RuntimeException e) {
+                System.err.println("Code generation failed: " + e.getMessage());
                 throw e;
             }
 

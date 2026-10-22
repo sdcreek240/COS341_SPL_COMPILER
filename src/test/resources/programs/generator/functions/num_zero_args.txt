@@ -1,0 +1,1 @@
+#x : num #answer ( ) { : : return ( 42 ) } : #x = #answer ( ) ; print ( #x ) ;
