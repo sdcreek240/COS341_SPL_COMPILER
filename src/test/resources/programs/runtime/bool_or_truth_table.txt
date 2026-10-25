@@ -1,0 +1,20 @@
+#a #b #r : :
+#a = 1 ;
+#b = 1 ;
+if or( eq( #a 1 ) eq( #b 1 ) ) then { #r = 1 ; } else { #r = 0 ; } ;
+print ( #r ) ;
+print "," ;
+#a = 1 ;
+#b = 0 ;
+if or( eq( #a 1 ) eq( #b 1 ) ) then { #r = 1 ; } else { #r = 0 ; } ;
+print ( #r ) ;
+print "," ;
+#a = 0 ;
+#b = 1 ;
+if or( eq( #a 1 ) eq( #b 1 ) ) then { #r = 1 ; } else { #r = 0 ; } ;
+print ( #r ) ;
+print "," ;
+#a = 0 ;
+#b = 0 ;
+if or( eq( #a 1 ) eq( #b 1 ) ) then { #r = 1 ; } else { #r = 0 ; } ;
+print ( #r ) ;
