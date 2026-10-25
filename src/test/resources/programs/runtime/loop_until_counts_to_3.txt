@@ -1,0 +1,4 @@
+#x : :
+#x = 0 ;
+until eq( #x 3 ) do { #x = add( #x 1 ) ; } ;
+print ( #x ) ;
