@@ -54,7 +54,7 @@ final class CallInliner {
 
         List<Element> argTerms = collectArgumentTerms(inputNode);
         if (argTerms.size() != f.paramCount()) {
-            throw new IllegalStateException(
+            throw new CodeGenException(
                     "Function " + f.name() + " expects " + f.paramCount()
                             + " argument(s) but was called with " + argTerms.size());
         }

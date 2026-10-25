@@ -3,19 +3,17 @@ package spl;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import spl.frontend.Frontend;
-import spl.frontend.exceptionHandling.CompilationResult;
-import spl.frontend.exceptionHandling.DebugPrinter;
-import spl.frontend.io.XMLWriter;
-
-//Backend Scoping
+import spl.backend.generator.CodeGenException;
+import spl.backend.generator.CodeGenerator;
 import spl.backend.scoping.SemanticAnalyser;
 import spl.backend.scoping.SemanticException;
 import spl.backend.scoping.SymbolTable;
 import spl.backend.scoping.TypeAnalyser;
 import spl.backend.tree.SyntaxTree;
-//Code gen
-import spl.backend.generator.CodeGenerator;
+import spl.frontend.Frontend;
+import spl.frontend.exceptionHandling.CompilationResult;
+import spl.frontend.exceptionHandling.DebugPrinter;
+import spl.frontend.io.XMLWriter;
 
 public class Main {
     public static void main(String[] args) {
@@ -29,6 +27,13 @@ public class Main {
         }
 
         Frontend frontend = new Frontend();
+
+        try {
+            Files.deleteIfExists(Path.of("tree.xml"));
+            Files.deleteIfExists(CodeGenerator.DEFAULT_OUTPUT);
+        } catch (java.io.IOException e) {
+            System.err.println("Warning: could not delete output from a previous run: " + e.getMessage());
+        }
 
         CompilationResult result = frontend.processFile(filePath);
 
@@ -58,19 +63,16 @@ public class Main {
             SyntaxTree tree = SyntaxTree.load(xmlPath);
 
             try {
-                java.nio.file.Files.deleteIfExists(CodeGenerator.DEFAULT_OUTPUT);
-            } catch (java.io.IOException e) {
-                System.err.println("Warning: could not delete stale target.cpp: " + e.getMessage());
-            }
-
-            try {
                 new CodeGenerator(table, tree).generateToFile();
                 System.out.println("Code generation OK - written to " +
                         CodeGenerator.DEFAULT_OUTPUT.toAbsolutePath());
-            } catch (RuntimeException e) {
-                System.err.println("Code generation failed: " + e.getMessage());
-                throw e;
-            }
+                    } catch (CodeGenException e) {
+            System.out.println("Code generation error: " + e.getMessage());
+            return; // error in the SPL program: clean message only
+        } catch (RuntimeException e) {
+            System.err.println("Code generation failed: " + e.getMessage());
+            throw e; // compiler bug: keep the full stack trace
+        }
 
         } else {
 
